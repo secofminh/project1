@@ -8,3 +8,8 @@ spring:
     driver-class-name: org.h2.Driver
     username: root
     password: Asdf1234!
+  jpa:
+    hibernate:
+      ddl-auto: create
+    defer-datasource-initialization: true
+
