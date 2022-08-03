@@ -1,6 +1,7 @@
 package com.example.project1.service;
 
 import com.example.project1.dto.MinimumPriceCombinationResponseDto;
+import com.example.project1.dto.PriceAndBrandResponseDto;
 import com.example.project1.dto.ProductResponseDto;
 import com.example.project1.entity.Category;
 import com.example.project1.entity.ProductEntity;
@@ -36,5 +37,31 @@ public class ProductService {
         }
 
         return MinimumPriceCombinationResponseDto.of(productEntities, totalPrice);
+    }
+
+    public Object getAllCategoryMinimumPriceByBrand() {
+        List<String> brands = productRepository.findDistinctBrand();
+
+        List<PriceAndBrandResponseDto> priceAndBrandResponseDtos = new ArrayList<>();
+
+        for (String brand : brands) {
+            Long totalPrice = 0L;
+            for (Category category : Category.values()) {
+                List<ProductEntity> productEntities = productRepository.findByBrandAndCategory(brand, category);
+
+                ProductEntity minimumProduct = productEntities.stream()
+                        .min(ProductEntity::priceDiff)
+                        .get();
+
+                totalPrice += minimumProduct.getPrice();
+            }
+            priceAndBrandResponseDtos.add(PriceAndBrandResponseDto.of(brand, totalPrice));
+            System.out.printf("brand : %s , totalPrice : %s\n", brand, totalPrice);
+        }
+
+
+        return priceAndBrandResponseDtos.stream()
+                .min(PriceAndBrandResponseDto::totalPriceDiff)
+                .get();
     }
 }
