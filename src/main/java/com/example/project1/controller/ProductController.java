@@ -1,5 +1,6 @@
 package com.example.project1.controller;
 
+import com.example.project1.entity.Category;
 import com.example.project1.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,5 +23,10 @@ public class ProductController {
     @GetMapping("all/minimum/brand")
     public ResponseEntity<?> getAllCategoryMinimumPriceByBrand(){
         return ResponseEntity.ok(productService.getAllCategoryMinimumPriceByBrand());
+    }
+
+    @GetMapping("price/min-and-max/{category}")
+    public ResponseEntity<?> getMinAndMaxPriceByCategory(@PathVariable String category){
+        return ResponseEntity.ok(productService.getMinAndMaxPriceByCategory(category));
     }
 }

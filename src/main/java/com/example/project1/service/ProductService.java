@@ -1,5 +1,6 @@
 package com.example.project1.service;
 
+import com.example.project1.dto.MinAndMaxPriceProductResponseDto;
 import com.example.project1.dto.MinimumPriceCombinationResponseDto;
 import com.example.project1.dto.PriceAndBrandResponseDto;
 import com.example.project1.dto.ProductResponseDto;
@@ -56,12 +57,37 @@ public class ProductService {
                 totalPrice += minimumProduct.getPrice();
             }
             priceAndBrandResponseDtos.add(PriceAndBrandResponseDto.of(brand, totalPrice));
-            System.out.printf("brand : %s , totalPrice : %s\n", brand, totalPrice);
         }
 
 
         return priceAndBrandResponseDtos.stream()
                 .min(PriceAndBrandResponseDto::totalPriceDiff)
                 .get();
+    }
+
+    public Object getMinAndMaxPriceByCategory(String category) {
+        Category categoryEnum = null;
+
+        for (Category category1 : Category.values()) {
+            if (category1.toString().equals(category)) {
+                categoryEnum = category1;
+            }
+        }
+
+        if (categoryEnum == null) {
+            throw new RuntimeException("해당 카테고리는 존재하지 않습니다.");
+        }
+
+        List<ProductEntity> productEntities = productRepository.findByCategory(categoryEnum);
+
+        ProductEntity minimumProduct = productEntities.stream()
+                .min(ProductEntity::priceDiff)
+                .get();
+
+        ProductEntity maximumProduct = productEntities.stream()
+                .max(ProductEntity::priceDiff)
+                .get();
+
+        return MinAndMaxPriceProductResponseDto.of(maximumProduct.getBrand(), maximumProduct.getPrice(), minimumProduct.getBrand(), minimumProduct.getPrice());
     }
 }
