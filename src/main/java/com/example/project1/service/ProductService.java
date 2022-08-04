@@ -1,13 +1,12 @@
 package com.example.project1.service;
 
-import com.example.project1.dto.MinAndMaxPriceProductResponseDto;
-import com.example.project1.dto.MinimumPriceCombinationResponseDto;
-import com.example.project1.dto.PriceAndBrandResponseDto;
-import com.example.project1.dto.ProductResponseDto;
+import com.example.project1.dto.*;
 import com.example.project1.entity.Category;
 import com.example.project1.entity.ProductEntity;
+import com.example.project1.exception.ProductException;
 import com.example.project1.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -75,7 +74,7 @@ public class ProductService {
         }
 
         if (categoryEnum == null) {
-            throw new RuntimeException("해당 카테고리는 존재하지 않습니다.");
+            throw new ProductException("해당 카테고리는 존재하지 않습니다.", HttpStatus.NOT_FOUND);
         }
 
         List<ProductEntity> productEntities = productRepository.findByCategory(categoryEnum);
@@ -89,5 +88,29 @@ public class ProductService {
                 .get();
 
         return MinAndMaxPriceProductResponseDto.of(maximumProduct.getBrand(), maximumProduct.getPrice(), minimumProduct.getBrand(), minimumProduct.getPrice());
+    }
+
+    public Object createProduct(CreateProductRequestDto createProductRequestDto) {
+        ProductEntity productEntity = ProductEntity.from(createProductRequestDto);
+        return productRepository.save(productEntity);
+    }
+
+    public Object updateProduct(UpdateProductRequestDto updateProductRequestDto) {
+        if (updateProductRequestDto.getId() == null) {
+            throw new ProductException("수정 하기 위해 상품 ID는 필수 값입니다.", HttpStatus.CONFLICT);
+        }
+
+        productRepository.findById(updateProductRequestDto.getId())
+                .orElseThrow(() -> new ProductException("해당 상품은 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+
+        ProductEntity productEntity = ProductEntity.from(updateProductRequestDto);
+        return productRepository.save(productEntity);
+    }
+
+    public Object deleteProduct(Long id) {
+        productRepository.findById(id)
+                .orElseThrow(() -> new ProductException("해당 상품은 존재하지 않습니다.", HttpStatus.NOT_FOUND));
+        productRepository.deleteById(id);
+        return id;
     }
 }
